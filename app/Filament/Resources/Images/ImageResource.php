@@ -20,9 +20,12 @@ class ImageResource extends Resource
 {
     protected static ?string $model = Image::class;
 
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
+    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedPhoto;
+    protected static string|BackedEnum|null $activeNavigationIcon = Heroicon::Photo;
+    protected static ?int $navigationSort = 2;
 
     protected static ?string $recordTitleAttribute = 'Image';
+    protected static ?string $navigationLabel = 'My Images';
 
     public static function form(Schema $schema): Schema
     {
