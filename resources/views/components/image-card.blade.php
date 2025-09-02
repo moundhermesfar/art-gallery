@@ -1,4 +1,5 @@
 <div x-data="{ 
+  imageError: false,
   showModal: false,
   downloadImage(imageId, title) {
     if (!imageId) {
@@ -17,11 +18,11 @@
     document.body.removeChild(link);
   }
 }" class="overflow-hidden rounded-lg transition-transform duration-300 hover:shadow-lg">
-  <div class="relative w-full cursor-pointer" @click="if(!imageError) { showModal = true; }">
+  <div class="relative w-full cursor-pointer" @click="{ showModal = true; }">
     @if (!empty($getRecord()['image_id']))
       <img class="w-full h-[350px] transition-transform duration-300 ease-in-out hover:scale-105"
         src="{{ $this->getImageURL($getRecord()['image_id']) }}" alt="Artwork"
-        onerror="this.onerror=null; this.src='{{ asset('default.png') }}';" />
+        onerror="this.onerror=null; this.src='{{ asset('default.png') }}'; this.imageError=true;" />
     @else
       <div class="w-full h-[350px] bg-gray-200 flex items-center justify-center">
         <span>No Image Available</span>
@@ -36,11 +37,12 @@
   </div>
   <div class="flex justify-around items-center p-4">
     <x-filament::icon-button icon="heroicon-o-heart" />
-    <x-filament::icon-button icon="heroicon-o-arrow-down-tray"
-      @click.stop="downloadImage('{{ $getRecord()['image_id'] ?? '' }}', '{{ $getRecord()['title'] ?? 'artwork' }}')" />
+    <x-filament::icon-button icon="heroicon-o-arrow-down-tray" x-bind:disabled="imageError"
+      x-bind:class="{ 'opacity-50 cursor-not-allowed': imageError }"
+      @click.stop="if (!imageError) downloadImage('{{ $getRecord()['image_id'] ?? '' }}', '{{ $getRecord()['title'] ?? 'artwork' }}')" />
   </div>
 
-  <div x-show="showModal && !imageError" x-cloak
+  <div x-show="showModal" x-cloak
     class="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm"
     x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0"
     x-transition:enter-end="opacity-100" x-transition:leave="transition ease-in duration-200"
