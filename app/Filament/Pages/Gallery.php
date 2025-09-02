@@ -20,19 +20,28 @@ class Gallery extends Page
 
   public array $images = [];
 
+  private string $URL = 'https://api.artic.edu/api/v1/artworks';
+
+  private function getImageURL(string $imageId): string
+  {
+    return "https://www.artic.edu/iiif/2/{$imageId}/full/843,/0/default.jpg";
+  }
+
   public function mount(): void
   {
     $res = Http::get(
-      'https://api.artic.edu/api/v1/artworks',
+      $this->URL,
       ['page' => 1, 'limit' => 10, 'fields' => 'id,title,image_id']
     );
     if ($res->successful()) {
       $data = $res->json()['data'];
 
-      $this->images = collect($data)->map(function ($item) {
-        $item['image_url'] = "https://www.artic.edu/iiif/2/{$item['image_id']}/full/843,/0/default.jpg";
-        return $item;
-      })->toArray();
+      $this->images = collect($data)
+        ->filter(fn($item) => $item['image_id'])
+        ->map(function ($item) {
+          $item['image_url'] = $this->getImageURL($item['image_id']);
+          return $item;
+        })->toArray();
     }
   }
 }
