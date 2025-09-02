@@ -1,5 +1,21 @@
 <div x-data="{ 
   showModal: false,
+  downloadImage(imageId, title) {
+    if (!imageId) {
+      alert('No image available for download');
+      return;
+    }
+    
+    const downloadUrl = `/download-image?image_id=${encodeURIComponent(imageId)}&title=${encodeURIComponent(title)}`;
+    
+    // Create a temporary link element and trigger download
+    const link = document.createElement('a');
+    link.href = downloadUrl;
+    link.download = '';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  }
 }" class="overflow-hidden rounded-lg transition-transform duration-300 hover:shadow-lg">
   <div class="relative w-full cursor-pointer" @click="if(!imageError) { showModal = true; }">
     @if (!empty($getRecord()['image_id']))
@@ -20,6 +36,8 @@
   </div>
   <div class="flex justify-around items-center p-4">
     <x-filament::icon-button icon="heroicon-o-heart" />
+    <x-filament::icon-button icon="heroicon-o-arrow-down-tray"
+      @click.stop="downloadImage('{{ $getRecord()['image_id'] ?? '' }}', '{{ $getRecord()['title'] ?? 'artwork' }}')" />
   </div>
 
   <div x-show="showModal && !imageError" x-cloak
