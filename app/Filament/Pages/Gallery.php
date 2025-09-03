@@ -3,20 +3,15 @@
 namespace App\Filament\Pages;
 
 use Filament\Pages\Page;
-use Filament\Support\View\Components\ButtonComponent;
 use Filament\Tables\Concerns\InteractsWithTable;
 use Illuminate\Support\Facades\Http;
 use BackedEnum;
-use Filament\Infolists\Components\ImageEntry;
-use Filament\Infolists\Components\TextEntry;
-use Filament\Tables\Columns\ImageColumn;
 use Filament\Tables\Columns\Layout\Grid;
-use Filament\Tables\Columns\Layout\Split;
-use Filament\Tables\Columns\Layout\Stack;
 use Filament\Tables\Columns\Layout\View;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Contracts\HasTable;
 use Filament\Tables\Table;
+use Illuminate\Support\Collection;
 
 class Gallery extends Page implements HasTable
 {
@@ -40,9 +35,11 @@ class Gallery extends Page implements HasTable
   {
     return $table
       ->records(
-        fn(): array => Http::get($this->URL, ['page' => 1, 'limit' => 12, 'fields' => 'id,title,image_id'])
-          ->collect()
-          ->get('data', [])
+        fn(?string $sortColumn, ?string $sortDirection): Collection => collect(Http::get($this->URL, ['page' => 1, 'limit' => 12, 'fields' => 'id,title,image_id'])->json('data', []))
+          ->when(
+            filled($sortColumn),
+            fn(Collection $data) => $data->sortBy($sortColumn, SORT_REGULAR, $sortDirection === 'desc')
+          )
       )
       ->columns([
         Grid::make()
@@ -54,7 +51,9 @@ class Gallery extends Page implements HasTable
               ->extraAttributes([
                 'class' => 'text-sm font-medium text-center',
               ])
+              ->sortable(true)
               ->searchable(),
+
             View::make('components.image-card'),
           ])
           ->extraAttributes([
