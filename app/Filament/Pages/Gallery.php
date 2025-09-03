@@ -11,6 +11,7 @@ use Filament\Tables\Columns\Layout\View;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Contracts\HasTable;
 use Filament\Tables\Table;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 
@@ -18,33 +19,47 @@ class Gallery extends Page implements HasTable
 {
 
   use InteractsWithTable;
+
   protected string $view = 'filament.pages.gallery';
-  protected static string | BackedEnum | null $navigationIcon = 'heroicon-o-paint-brush';
-  protected static string | BackedEnum | null $activeNavigationIcon = 'heroicon-s-paint-brush';
+  protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-paint-brush';
+  protected static string|BackedEnum|null $activeNavigationIcon = 'heroicon-s-paint-brush';
   protected static ?int $navigationSort = 1;
 
   public array $images = [];
 
   private string $URL = 'https://api.artic.edu/api/v1/artworks';
 
+  public string $imageBaseURL;
+
   private function getImageURL(string $imageId): string
   {
-    return "https://www.artic.edu/iiif/2/{$imageId}/full/843,/0/default.jpg";
+    return $this->imageBaseURL . "/{$imageId}/full/843,/0/default.jpg";
   }
 
   public function table(Table $table): Table
   {
     return $table
       ->records(
-        fn(?string $sortColumn, ?string $sortDirection, ?string $search): Collection => collect(Http::get($this->URL, ['page' => 1, 'limit' => 12, 'fields' => 'id,title,image_id'])->json('data', []))
-          ->when(
-            filled($sortColumn),
-            fn(Collection $data) => $data->sortBy($sortColumn, SORT_REGULAR, $sortDirection === 'desc')
-          )
-          ->when(
-            filled($search),
-            fn(Collection $data) => $data->filter(fn($item) => str_contains(Str::lower($item['title']), Str::lower($search)))
-          )
+        function (?string $sortColumn, ?string $sortDirection, ?string $search, int $page, int $recordsPerPage): LengthAwarePaginator {
+          $response =  Http::get($this->URL . ($search ? '/search' : ''), ['q' => $search, 'page' => $page, 'limit' => $recordsPerPage, 'fields' => 'id,title,image_id'])->json();
+          $this->imageBaseURL = $response['config']['iiif_url'] ?? 'https://www.artic.edu/iiif/2';
+          $records = collect($response['data'])
+            ->filter(fn($item) => !empty($item['image_id']))
+            ->map(function ($item) {
+              $item['image_url'] = $this->getImageURL($item['image_id']);
+              return $item;
+            })
+            ->when(
+              filled($sortColumn),
+              fn(Collection $data) => $data->sortBy($sortColumn, SORT_REGULAR, $sortDirection === 'desc')
+            );
+          return new LengthAwarePaginator(
+            $records,
+            $response['pagination']['total'],
+            $recordsPerPage,
+            $page
+          );
+        }
       )
       ->columns([
         Grid::make()
@@ -70,6 +85,6 @@ class Gallery extends Page implements HasTable
         'md' => 2,
         'lg' => 3
       ])
-      ->paginationPageOptions([6, 12, 24]);
+      ->paginationPageOptions([12, 24, 48, 60, 100]);
   }
 }

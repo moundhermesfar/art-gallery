@@ -17,10 +17,10 @@
     document.body.removeChild(link);
   }
 }" class="overflow-hidden rounded-lg transition-transform duration-300 hover:shadow-lg">
-  <div class="relative w-full cursor-pointer" @click="{ showModal = true; }">
-    @if (!empty($getRecord()['image_id']))
+  <div class="relative w-full cursor-pointer" @click="showModal = true">
+    @if ($getRecord()['image_url'])
       <img class="w-full h-[350px] transition-transform duration-300 ease-in-out hover:scale-105"
-        src="{{ $this->getImageURL($getRecord()['image_id']) }}" alt="Artwork"
+        src="{{ $getRecord()['image_url'] }}" alt="Artwork"
         onerror="this.onerror=null; this.src='{{ asset('default.png') }}'; this.imageError=true;" />
     @else
       <div class="w-full h-[350px] bg-gray-200 flex items-center justify-center">
@@ -57,14 +57,18 @@
         </svg>
       </button>
 
-      @if (!empty($getRecord()['image_id']))
+      @if ($getRecord()['image_url'])
         <!-- Modal image -->
-        <img class="max-h-[600px] object-contain rounded-lg shadow-2xl"
-          src="{{ $this->getImageURL($getRecord()['image_id']) }}" alt="{{ $getRecord()['title'] ?? 'Artwork' }}"
+        <img class="max-h-[600px] object-contain rounded-lg shadow-2xl" src="{{ $getRecord()['image_url'] }}"
+          alt="{{ $getRecord()['title'] ?? 'Artwork' }}"
           onerror="this.onerror=null; this.src='{{ asset('default.png') }}';"
           x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 scale-90"
           x-transition:enter-end="opacity-100 scale-100" x-transition:leave="transition ease-in duration-200"
           x-transition:leave-start="opacity-100 scale-100" x-transition:leave-end="opacity-0 scale-90" @click.stop>
+      @else
+        <div class="w-[500px] h-[400px] bg-gray-200 flex items-center justify-center">
+          <h2 class="text-2xl font-semibold">No Image Available</h2>
+        </div>
       @endif
 
       <!-- Image title -->
