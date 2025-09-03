@@ -3,7 +3,6 @@
   showModal: false,
   downloadImage(imageId, title) {
     if (!imageId) {
-      alert('No image available for download');
       return;
     }
     
@@ -37,9 +36,10 @@
   </div>
   <div class="flex justify-around items-center p-4">
     <x-filament::icon-button icon="heroicon-o-heart" />
-    <x-filament::icon-button icon="heroicon-o-arrow-down-tray" x-bind:disabled="imageError"
-      x-bind:class="{ 'opacity-50 cursor-not-allowed': imageError }"
-      @click.stop="if (!imageError) downloadImage('{{ $getRecord()['image_id'] ?? '' }}', '{{ $getRecord()['title'] ?? 'artwork' }}')" />
+    <x-filament::icon-button icon="heroicon-o-arrow-down-tray"
+      x-bind:disabled="imageError || '{{ empty($getRecord()['image_id']) ? 'true' : 'false' }}' === 'true'"
+      x-bind:class="{ 'opacity-50 cursor-not-allowed': imageError || '{{ empty($getRecord()['image_id']) ? 'true' : 'false' }}' === 'true' }"
+      @click.stop="if (!imageError && '{{ !empty($getRecord()['image_id']) ? 'true' : 'false' }}' === 'true') downloadImage('{{ $getRecord()['image_id'] ?? '' }}', '{{ $getRecord()['title'] ?? 'artwork' }}')" />
   </div>
 
   <div x-show="showModal" x-cloak
@@ -57,13 +57,15 @@
         </svg>
       </button>
 
-      <!-- Modal image -->
-      <img class="max-h-[600px] object-contain rounded-lg shadow-2xl"
-        src="{{ $this->getImageURL($getRecord()['image_id']) }}" alt="{{ $getRecord()['title'] ?? 'Artwork' }}"
-        onerror="this.onerror=null; this.src='{{ asset('default.png') }}';"
-        x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 scale-90"
-        x-transition:enter-end="opacity-100 scale-100" x-transition:leave="transition ease-in duration-200"
-        x-transition:leave-start="opacity-100 scale-100" x-transition:leave-end="opacity-0 scale-90" @click.stop>
+      @if (!empty($getRecord()['image_id']))
+        <!-- Modal image -->
+        <img class="max-h-[600px] object-contain rounded-lg shadow-2xl"
+          src="{{ $this->getImageURL($getRecord()['image_id']) }}" alt="{{ $getRecord()['title'] ?? 'Artwork' }}"
+          onerror="this.onerror=null; this.src='{{ asset('default.png') }}';"
+          x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 scale-90"
+          x-transition:enter-end="opacity-100 scale-100" x-transition:leave="transition ease-in duration-200"
+          x-transition:leave-start="opacity-100 scale-100" x-transition:leave-end="opacity-0 scale-90" @click.stop>
+      @endif
 
       <!-- Image title -->
       <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 to-transparent p-6">
