@@ -73,7 +73,7 @@
 
       <!-- Image description -->
       <div
-        class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-4 opacity-0 hover:opacity-100 transition-opacity duration-300 max-h-48 overflow-hidden">
+        class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 via-black/50 to-transparent p-4 opacity-0 hover:opacity-100 transition-opacity duration-300 max-h-48 overflow-hidden">
         <div
           class="text-white text-md font-semibold prose prose-invert max-w-none max-h-40 overflow-y-auto scrollbar-thin scrollbar-thumb-white/30 scrollbar-track-transparent">
           {!! $getRecord()['description'] ?? 'No description available' !!}
