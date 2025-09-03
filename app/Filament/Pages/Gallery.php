@@ -41,7 +41,7 @@ class Gallery extends Page implements HasTable
     return $table
       ->records(
         function (?string $sortColumn, ?string $sortDirection, ?string $search, int $page, int $recordsPerPage): LengthAwarePaginator {
-          $response =  Http::get($this->URL . ($search ? '/search' : ''), ['q' => $search, 'page' => $page, 'limit' => $recordsPerPage, 'fields' => 'id,title,image_id'])->json();
+          $response =  Http::get($this->URL . ($search ? '/search' : ''), ['q' => $search, 'page' => $page, 'limit' => $recordsPerPage, 'fields' => 'id,title,image_id,description'])->json();
           $this->imageBaseURL = $response['config']['iiif_url'] ?? 'https://www.artic.edu/iiif/2';
           $records = collect($response['data'])
             ->filter(fn($item) => !empty($item['image_id']))

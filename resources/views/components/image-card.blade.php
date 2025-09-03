@@ -30,7 +30,7 @@
     <div
       class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-4 opacity-0 hover:opacity-100 transition-opacity duration-300">
       <h3 class="text-white text-sm font-medium truncate">
-        {{ Str::limit($getRecord()['title'] ?? 'Untitled', 30) }}
+        {!! Str::limit(strip_tags($getRecord()['description'] ?? 'No description available'), 40) !!}
       </h3>
     </div>
   </div>
@@ -71,11 +71,13 @@
         </div>
       @endif
 
-      <!-- Image title -->
-      <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 to-transparent p-6">
-        <h3 class="text-white text-xl font-semibold">
-          {{ Str::limit($getRecord()['title'] ?? 'Untitled', 30) }}
-        </h3>
+      <!-- Image description -->
+      <div
+        class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-4 opacity-0 hover:opacity-100 transition-opacity duration-300 max-h-48 overflow-hidden">
+        <div
+          class="text-white text-md font-semibold prose prose-invert max-w-none max-h-40 overflow-y-auto scrollbar-thin scrollbar-thumb-white/30 scrollbar-track-transparent">
+          {!! $getRecord()['description'] ?? 'No description available' !!}
+        </div>
       </div>
     </div>
   </div>
