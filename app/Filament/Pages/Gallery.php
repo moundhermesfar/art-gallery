@@ -12,6 +12,7 @@ use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Contracts\HasTable;
 use Filament\Tables\Table;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Str;
 
 class Gallery extends Page implements HasTable
 {
@@ -35,10 +36,14 @@ class Gallery extends Page implements HasTable
   {
     return $table
       ->records(
-        fn(?string $sortColumn, ?string $sortDirection): Collection => collect(Http::get($this->URL, ['page' => 1, 'limit' => 12, 'fields' => 'id,title,image_id'])->json('data', []))
+        fn(?string $sortColumn, ?string $sortDirection, ?string $search): Collection => collect(Http::get($this->URL, ['page' => 1, 'limit' => 12, 'fields' => 'id,title,image_id'])->json('data', []))
           ->when(
             filled($sortColumn),
             fn(Collection $data) => $data->sortBy($sortColumn, SORT_REGULAR, $sortDirection === 'desc')
+          )
+          ->when(
+            filled($search),
+            fn(Collection $data) => $data->filter(fn($item) => str_contains(Str::lower($item['title']), Str::lower($search)))
           )
       )
       ->columns([
@@ -47,7 +52,7 @@ class Gallery extends Page implements HasTable
           ->schema([
             TextColumn::make('title')
               ->label('Title')
-              ->getStateUsing(fn($record): mixed => \Illuminate\Support\Str::limit($record['title'] ?? 'Untitled', 30))
+              ->getStateUsing(fn($record): mixed => Str::limit($record['title'] ?? 'Untitled', 30))
               ->extraAttributes([
                 'class' => 'text-sm font-medium text-center',
               ])
