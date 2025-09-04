@@ -28,9 +28,6 @@ class ImageForm
                     ->maxSize(1024 * 1024 * 6)
                     ->visibility('public')
                     ->required(),
-                Toggle::make('is_favorite')
-                    ->label('Mark as Favorite')
-                    ->required(),
             ]);
     }
 }

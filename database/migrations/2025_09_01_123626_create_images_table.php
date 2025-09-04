@@ -17,7 +17,6 @@ return new class extends Migration
             $table->string('title');
             $table->string('description');
             $table->string('path');
-            $table->boolean('is_favorite')->default(false);
             $table->timestamps();
         });
     }

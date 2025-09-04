@@ -15,7 +15,6 @@ class Image extends Model
         'title',
         'description',
         'path',
-        'is_favorite',
     ];
 
     protected $appends = ['path_url'];
