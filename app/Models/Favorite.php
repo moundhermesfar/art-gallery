@@ -51,7 +51,7 @@ class Favorite extends Model
     }
 
     if ($this->source === 'api') {
-      return $this->api_description ?? 'Desc';
+      return $this->api_description ?? 'No description available.';
     }
 
     return null;
