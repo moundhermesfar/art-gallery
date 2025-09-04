@@ -27,7 +27,15 @@ class FavoritesTable
               ->extraAttributes([
                 'class' => 'text-sm font-medium text-center',
               ])
-              ->sortable(true)
+              ->sortable(query: function ($query, string $direction): void {
+                $query->orderByRaw("
+              COALESCE(
+                CASE WHEN source = 'local' THEN (select title from images where images.id = favorites.image_id)
+                     ELSE favorites.api_title
+                END, ''
+              ) $direction
+            ");
+              })
               ->searchable(query: function ($query, string $search) {
                 $query
                   ->where('api_title', 'ilike', "%{$search}%")
