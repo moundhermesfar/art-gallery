@@ -15,6 +15,7 @@ use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
+use Illuminate\Support\Facades\Auth;
 
 class ImageResource extends Resource
 {
@@ -32,10 +33,6 @@ class ImageResource extends Resource
         return ImageForm::configure($schema);
     }
 
-    public static function infolist(Schema $schema): Schema
-    {
-        return ImageInfolist::configure($schema);
-    }
 
     public static function table(Table $table): Table
     {
@@ -54,7 +51,6 @@ class ImageResource extends Resource
         return [
             'index' => ListImages::route('/'),
             'create' => CreateImage::route('/create'),
-            'view' => ViewImage::route('/{record}'),
             'edit' => EditImage::route('/{record}/edit'),
         ];
     }

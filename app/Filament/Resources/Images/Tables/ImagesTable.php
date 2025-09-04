@@ -7,46 +7,45 @@ use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Actions\ViewAction;
 use Filament\Tables\Columns\IconColumn;
+use Filament\Tables\Columns\ImageColumn;
+use Filament\Tables\Columns\Layout\Grid;
+use Filament\Tables\Columns\Layout\View;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
+use Illuminate\Support\Str;
 
 class ImagesTable
 {
-    public static function configure(Table $table): Table
-    {
-        return $table
-            ->columns([
-                TextColumn::make('user_id')
-                    ->numeric()
-                    ->sortable(),
-                TextColumn::make('title')
-                    ->searchable(),
-                TextColumn::make('description')
-                    ->searchable(),
-                TextColumn::make('path')
-                    ->searchable(),
-                IconColumn::make('is_favorite')
-                    ->boolean(),
-                TextColumn::make('created_at')
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
-                TextColumn::make('updated_at')
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
-            ])
-            ->filters([
-                //
-            ])
-            ->recordActions([
-                ViewAction::make(),
-                EditAction::make(),
-            ])
-            ->toolbarActions([
-                BulkActionGroup::make([
-                    DeleteBulkAction::make(),
-                ]),
-            ]);
-    }
+  public static function configure(Table $table): Table
+  {
+    return $table
+      ->recordUrl(null)
+      ->columns([
+        Grid::make()
+          ->columns(1)
+          ->schema([
+            TextColumn::make('title')
+              ->label('Title')
+              ->getStateUsing(fn($record): mixed => Str::limit($record['title'] ?? 'Untitled', 30))
+              ->extraAttributes([
+                'class' => 'text-sm font-medium text-center',
+              ])
+              ->sortable(true)
+              ->searchable(),
+
+            View::make('components.image-card'),
+          ])
+          ->extraAttributes([
+            'class' => 'flex flex-col items-center justify-center',
+          ]),
+      ])
+      ->contentGrid([
+        'sm' => 1,
+        'md' => 2,
+        'lg' => 3
+      ])
+      ->recordActions([
+        EditAction::make(),
+      ]);
+  }
 }

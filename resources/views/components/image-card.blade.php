@@ -1,14 +1,18 @@
 <div x-data="{ 
   imageError: false,
   showModal: false,
-  downloadImage(imageId, title) {
-    if (!imageId) {
-      return;
+  downloadImage(imageId, imagePath, title) {
+    if (!imageId && !imagePath) return;
+
+    let downloadUrl;
+    if (imageId) {
+      // API image
+      downloadUrl = `/download-image?image_id=${encodeURIComponent(imageId)}&title=${encodeURIComponent(title)}`;
+    } else if (imagePath) {
+      // Local user-uploaded image
+      downloadUrl = `/download-image?image_path=${encodeURIComponent(imagePath)}&title=${encodeURIComponent(title)}`;
     }
-    
-    const downloadUrl = `/download-image?image_id=${encodeURIComponent(imageId)}&title=${encodeURIComponent(title)}`;
-    
-    // Create a temporary link element and trigger download
+
     const link = document.createElement('a');
     link.href = downloadUrl;
     link.download = '';
@@ -18,15 +22,16 @@
   }
 }" class="overflow-hidden rounded-lg transition-transform duration-300 hover:shadow-lg">
   <div class="relative w-full cursor-pointer" @click="showModal = true">
-    @if ($getRecord()['image_url'])
+    @if ($getRecord()['image_url'] || $getRecord()->path_url)
       <img class="w-full h-[350px] transition-transform duration-300 ease-in-out hover:scale-105"
-        src="{{ $getRecord()['image_url'] }}" alt="Artwork"
+        src="{{ $getRecord()['image_url'] ?? $getRecord()->path_url }}" alt="Artwork"
         onerror="this.onerror=null; this.src='{{ asset('default.png') }}'; this.imageError=true;" />
     @else
       <div class="w-full h-[350px] bg-gray-200 flex items-center justify-center">
         <span>No Image Available</span>
       </div>
     @endif
+
     <div
       class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-4 opacity-0 hover:opacity-100 transition-opacity duration-300">
       <h3 class="text-white text-sm font-medium truncate">
@@ -34,12 +39,20 @@
       </h3>
     </div>
   </div>
+
   <div class="flex justify-around items-center p-4">
     <x-filament::icon-button icon="heroicon-o-heart" />
     <x-filament::icon-button icon="heroicon-o-arrow-down-tray"
-      x-bind:disabled="imageError || '{{ empty($getRecord()['image_id']) ? 'true' : 'false' }}' === 'true'"
-      x-bind:class="{ 'opacity-50 cursor-not-allowed': imageError || '{{ empty($getRecord()['image_id']) ? 'true' : 'false' }}' === 'true' }"
-      @click.stop="if (!imageError && '{{ !empty($getRecord()['image_id']) ? 'true' : 'false' }}' === 'true') downloadImage('{{ $getRecord()['image_id'] ?? '' }}', '{{ $getRecord()['title'] ?? 'artwork' }}')" />
+      x-bind:disabled="imageError || (!('{{ $getRecord()['image_id'] ?? '' }}' || '{{ $getRecord()->path_url ?? '' }}'))"
+      x-bind:class="{ 'opacity-50 cursor-not-allowed': imageError || (!('{{ $getRecord()['image_id'] ?? '' }}' || '{{ $getRecord()->path_url ?? '' }}')) }"
+      @click.stop="
+        if (!imageError) {
+          const imageId = '{{ $getRecord()['image_id'] ?? '' }}';
+          const imagePath = '{{ $getRecord()->path_url ?? '' }}';
+          const title = '{{ $getRecord()['title'] ?? 'artwork' }}';
+          downloadImage(imageId || null, imagePath || null, title);
+        }
+      " />
   </div>
 
   <div x-show="showModal" x-cloak
@@ -57,10 +70,10 @@
         </svg>
       </button>
 
-      @if ($getRecord()['image_url'])
+      @if ($getRecord()['image_url'] || $getRecord()->path_url)
         <!-- Modal image -->
-        <img class="max-h-[600px] object-contain rounded-lg shadow-2xl" src="{{ $getRecord()['image_url'] }}"
-          alt="{{ $getRecord()['title'] ?? 'Artwork' }}"
+        <img class="max-h-[600px] object-contain rounded-lg shadow-2xl"
+          src="{{ $getRecord()['image_url'] ?? $getRecord()->path_url }}" alt="{{ $getRecord()['title'] ?? 'Artwork' }}"
           onerror="this.onerror=null; this.src='{{ asset('default.png') }}';"
           x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 scale-90"
           x-transition:enter-end="opacity-100 scale-100" x-transition:leave="transition ease-in duration-200"
