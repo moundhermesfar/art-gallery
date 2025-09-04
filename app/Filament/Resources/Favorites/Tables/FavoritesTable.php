@@ -28,8 +28,11 @@ class FavoritesTable
                 'class' => 'text-sm font-medium text-center',
               ])
               ->sortable(true)
-              ->searchable(),
-
+              ->searchable(query: function ($query, string $search) {
+                $query
+                  ->where('api_title', 'ilike', "%{$search}%")
+                  ->orWhereHas('image', fn($q) => $q->where('title', 'ilike', "%{$search}%"));
+              }),
             View::make('components.image-card'),
           ])
           ->extraAttributes([
