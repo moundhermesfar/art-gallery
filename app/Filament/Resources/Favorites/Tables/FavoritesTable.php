@@ -1,36 +1,35 @@
 <?php
 
-namespace App\Filament\Resources\Images\Tables;
+namespace App\Filament\Resources\Favorites\Tables;
 
-use App\Services\DownloadService;
+use App\Models\Favorite;
 use App\Services\FavoriteService;
 use Filament\Actions\Action;
 use Filament\Actions\DeleteAction;
-use Filament\Actions\EditAction;
 use Filament\Tables\Columns\Layout\Grid;
 use Filament\Tables\Columns\Layout\View;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Illuminate\Support\Str;
 
-class ImagesTable
+class FavoritesTable
 {
   public static function configure(Table $table): Table
   {
     return $table
-      ->recordUrl(null)
       ->columns([
         Grid::make()
           ->columns(1)
           ->schema([
-            TextColumn::make('title')
+            TextColumn::make('display_title')
               ->label('Title')
-              ->getStateUsing(fn($record): mixed => Str::limit($record['title'] ?? 'Untitled', 30))
+              ->getStateUsing(fn($record) => Str::limit($record->display_title ?? 'Untitled', 30))
               ->extraAttributes([
                 'class' => 'text-sm font-medium text-center',
               ])
               ->sortable(true)
               ->searchable(),
+
             View::make('components.image-card'),
           ])
           ->extraAttributes([
@@ -43,21 +42,17 @@ class ImagesTable
         'lg' => 3
       ])
       ->recordActions([
-        DeleteAction::make()
-          ->label(''),
-        EditAction::make()
-          ->label(''),
         Action::make('toggleFavorite')
           ->label('')
-          ->icon(fn($record) => $record['is_favorited'] ? 'heroicon-s-heart' : 'heroicon-o-heart')
-          ->action(function ($record) {
-            $isFavorited = FavoriteService::toggle($record, 'local');
-            $record['is_favorited'] = $isFavorited;
+          ->icon(fn(Favorite $record) => $record->is_favorited ? 'heroicon-s-heart' : 'heroicon-o-heart')
+          ->color(fn(Favorite $record) => $record->is_favorited ? 'danger' : 'gray')
+          ->action(function (Favorite $record) {
+            $isFavorited = FavoriteService::toggle($record, $record->source);
+            $record->is_favorited = $isFavorited;
+            $record->save();
           }),
-        Action::make('downloadImage')
-          ->label('')
-          ->icon('heroicon-o-arrow-down-tray')
-          ->action(fn($record) => DownloadService::download($record, 'local')),
+
+        DeleteAction::make()->label(''),
       ]);
   }
 }

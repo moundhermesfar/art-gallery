@@ -2,6 +2,8 @@
 
 namespace App\Filament\Pages;
 
+use App\Services\DownloadService;
+use App\Services\FavoriteService;
 use Filament\Pages\Page;
 use Filament\Tables\Concerns\InteractsWithTable;
 use Illuminate\Support\Facades\Http;
@@ -14,6 +16,9 @@ use Filament\Tables\Table;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
+use App\Models\Favorite;
+use Filament\Actions\Action;
+use Illuminate\Support\Facades\Auth;
 
 class Gallery extends Page implements HasTable
 {
@@ -31,9 +36,21 @@ class Gallery extends Page implements HasTable
 
   public string $imageBaseURL;
 
-  private function getImageURL(string $imageId): string
+  public function getImageURL(string $imageId): string
   {
     return $this->imageBaseURL . "/{$imageId}/full/843,/0/default.jpg";
+  }
+
+  private function checkIsFavorite(string $imageId): bool
+  {
+    if (!Auth::check()) {
+      return false;
+    }
+
+    return Favorite::where('user_id', Auth::id())
+      ->where('source', 'api')
+      ->where('api_image_id', $imageId)
+      ->exists();
   }
 
   public function table(Table $table): Table
@@ -47,6 +64,7 @@ class Gallery extends Page implements HasTable
             ->filter(fn($item) => !empty($item['image_id']))
             ->map(function ($item) {
               $item['image_url'] = $this->getImageURL($item['image_id']);
+              $item['is_favorited'] = $this->checkIsFavorite($item['image_id']);
               return $item;
             })
             ->when(
@@ -73,7 +91,6 @@ class Gallery extends Page implements HasTable
               ])
               ->sortable(true)
               ->searchable(),
-
             View::make('components.image-card'),
           ])
           ->extraAttributes([
@@ -85,6 +102,20 @@ class Gallery extends Page implements HasTable
         'md' => 2,
         'lg' => 3
       ])
-      ->paginationPageOptions([12, 24, 48, 60, 100]);
+      ->paginationPageOptions([12, 24, 48, 60, 100])
+      ->recordActions([
+        Action::make('toggleFavorite')
+          ->label('')
+          ->icon(fn($record) => $record['is_favorited'] ? 'heroicon-s-heart' : 'heroicon-o-heart')
+          ->color(fn($record) => $record['is_favorited'] ? 'danger' : 'gray')
+          ->action(function ($record) {
+            $isFavorited = FavoriteService::toggle($record, 'api');
+            $record['is_favorited'] = $isFavorited;
+          }),
+        Action::make('downloadImage')
+          ->label('')
+          ->icon('heroicon-o-arrow-down-tray')
+          ->action(fn($record) => DownloadService::download($record, 'api')),
+      ]);
   }
 }
