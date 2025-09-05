@@ -1,6 +1,6 @@
 # Image Gallery
 
-A Laravel + Filament based image gallery for testing purposes.
+A Laravel + Filament based image gallery.
 
 ## Requirements
 
